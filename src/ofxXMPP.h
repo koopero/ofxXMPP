@@ -14,6 +14,8 @@
 #include <map>
 #include <queue>
 #include "ofEvents.h"
+#include "ofLog.h"
+
 #include "Poco/Condition.h"
 
 
