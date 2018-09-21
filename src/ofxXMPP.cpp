@@ -10,10 +10,10 @@
 #include "ofConstants.h"
 
 xmpp_ctx_t *ofxXMPP::ctx=NULL;
-string ofxXMPP::LOG_NAME = "ofxXMPP";
+std::string ofxXMPP::LOG_NAME = "ofxXMPP";
 
 
-string ofxXMPP::toString(JingleState state){
+std::string ofxXMPP::toString(JingleState state){
 	switch(state){
 	case Disconnected:
 		return "Disconnected";
@@ -95,8 +95,8 @@ void ofxXMPP::conn_handler(xmpp_conn_t * const conn, const xmpp_conn_event_t sta
     ofNotifyEvent(xmpp->connectionStateChanged,xmpp->connectionState,xmpp);
 }
 
-string getTextFromStanzasChild(const string & childName, xmpp_stanza_t * stanza){
-	string text;
+std::string getTextFromStanzasChild(const std::string & childName, xmpp_stanza_t * stanza){
+    std::string text;
 	xmpp_stanza_t * child = xmpp_stanza_get_child_by_name(stanza,childName.c_str());
 	if(child){
 		const char * child_text = xmpp_stanza_get_text(child);
@@ -108,7 +108,7 @@ string getTextFromStanzasChild(const string & childName, xmpp_stanza_t * stanza)
 	return text;
 }
 
-void ofxXMPP::addTextChild(xmpp_stanza_t * stanza, const string & textstr){
+void ofxXMPP::addTextChild(xmpp_stanza_t * stanza, const std::string & textstr){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call addTextChild, xmpp not initialized";
 		return;
@@ -128,8 +128,8 @@ int ofxXMPP::presence_handler(xmpp_conn_t * const conn,
 	//cout << "presence from " << xmpp_stanza_get_attribute(stanza,"from") << endl;
 
 	ofxXMPPUser user;
-	string fullUserName = xmpp_stanza_get_attribute(stanza,"from");
-	vector<string> nameParts = ofSplitString(xmpp_stanza_get_attribute(stanza,"from"),"/");
+	std::string fullUserName = xmpp_stanza_get_attribute(stanza,"from");
+    std::vector<std::string> nameParts = ofSplitString(xmpp_stanza_get_attribute(stanza,"from"),"/");
 	if(!nameParts.empty())
 		user.userName = nameParts[0];
 	if(nameParts.size()>1)
@@ -154,9 +154,9 @@ int ofxXMPP::presence_handler(xmpp_conn_t * const conn,
 		user.priority = 0;
 	}
 
-	map<string,ofxXMPPUser>::iterator existingUser=xmpp->friends.find(fullUserName);
+    std::map<std::string,ofxXMPPUser>::iterator existingUser=xmpp->friends.find(fullUserName);
 	const char * presence_type = xmpp_stanza_get_type(stanza);
-	if(presence_type && string(presence_type)=="unavailable" && existingUser!=xmpp->friends.end()){
+    if(presence_type && std::string(presence_type)=="unavailable" && existingUser!=xmpp->friends.end()){
 		xmpp->friends.erase(existingUser);
 		ofNotifyEvent(xmpp->userDisconnected,user,xmpp);
 	}else{
@@ -188,7 +188,7 @@ int ofxXMPP::message_handler(xmpp_conn_t * const conn,
 		ofLogError() << "received error message" << message.body;
 	}else if(message.body==""){
 		xmpp->lock();
-		map<string,ofxXMPPUser>::iterator it = xmpp->friends.find(message.from);
+        std::map<std::string,ofxXMPPUser>::iterator it = xmpp->friends.find(message.from);
 		if(it==xmpp->friends.end()){
 			for(it=xmpp->friends.begin();it!=xmpp->friends.end();it++){
 				if(it->second.userName==message.from){
@@ -232,7 +232,7 @@ ofxXMPPJingleInitiation ofxXMPP::jingleInititationFromStanza(xmpp_stanza_t * iq)
 		xmpp_stanza_t * description = xmpp_stanza_get_child_by_name(content,"description");
 		if(description){
 			xmppContent.media = xmpp_stanza_get_attribute(description,"media");
-			cout << "xmpp " << "received content with media" << xmppContent.media << endl;
+            std::cout << "xmpp " << "received content with media" << xmppContent.media << std::endl;
 			xmpp_stanza_t * payload = xmpp_stanza_get_child_by_name(description,"payload");
 			while(payload){
 				ofxXMPPPayload xmppPayload;
@@ -301,7 +301,7 @@ ofxXMPPJingleFileInitiation ofxXMPP::jingleFileInititationFromStanza(xmpp_stanza
 					jingleFileInitiation.desc = getTextFromStanzasChild("desc",file);
 
 					jingleFileInitiation.size = 0;
-					istringstream cur(getTextFromStanzasChild("size",file));
+                    std::istringstream cur(getTextFromStanzasChild("size",file));
 					cur >> jingleFileInitiation.size;
 
 					jingleFileInitiation.hash = getTextFromStanzasChild("hash",file);
@@ -379,14 +379,14 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 	const char * iq_type = xmpp_stanza_get_type(stanza);
 	xmpp_stanza_t * jingle = xmpp_stanza_get_child_by_name(stanza,"jingle");
 
-	if(iq_type && string(iq_type)=="error" && jingle){
+    if(iq_type && std::string(iq_type)=="error" && jingle){
 		xmpp->jingleState = Disconnected;
 	}else if(jingle){
 		// jingle iq
 		const char * jingle_action_cstr = xmpp_stanza_get_attribute(jingle,"action");
-		string jingle_action;
+        std::string jingle_action;
 		if(jingle_action_cstr) jingle_action = jingle_action_cstr;
-		cout << xmpp_conn_get_bound_jid(xmpp->conn) << ": has jingle, state: " << toString(xmpp->jingleState) << " jingle_action: " << jingle_action << endl;
+        std::cout << xmpp_conn_get_bound_jid(xmpp->conn) << ": has jingle, state: " << toString(xmpp->jingleState) << " jingle_action: " << jingle_action << std::endl;
 		//cout << xmpp_conn_get_bound_jid(xmpp->conn) << ": has jingle, file transfer state: " << toString(xmpp->jingleFileTransferState) << " jingle_action: " << jingle_action << endl;
 
 		if(jingle_action == "session-terminate"){
@@ -396,7 +396,7 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 				xmpp_stanza_t * reason_content = xmpp_stanza_get_children(reason_stanza);
 
 				if(reason_content){
-					string reasonStr = xmpp_stanza_get_name(reason_content);
+                    std::string reasonStr = xmpp_stanza_get_name(reason_content);
 					if(reasonStr=="busy") reason = ofxXMPPTerminateBusy;
 					else if(reasonStr=="decline") reason = ofxXMPPTerminateDecline;
 					else if(reasonStr=="success") reason = ofxXMPPTerminateSuccess;
@@ -410,9 +410,9 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 				xmpp_stanza_t * description = xmpp_stanza_get_child_by_name(content,"description");
 				if(description){
 					const char * description_ns= xmpp_stanza_get_ns(description);
-					if(description_ns && string(description_ns)=="urn:xmpp:jingle:apps:rtp:1"){
+                    if(description_ns && std::string(description_ns)=="urn:xmpp:jingle:apps:rtp:1"){
 						xmpp->rtpInitiationReceived(stanza);
-					}else if(description_ns && string(description_ns)=="urn:xmpp:jingle:apps:file-transfer:3"){
+                    }else if(description_ns && std::string(description_ns)=="urn:xmpp:jingle:apps:file-transfer:3"){
 						xmpp->fileInitiationReceived(stanza);
 					}else{
 						ofLogWarning(LOG_NAME) << "got session-initiate for unkown namespace " << description_ns;
@@ -430,9 +430,9 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 				xmpp_stanza_t * description = xmpp_stanza_get_child_by_name(content,"description");
 				if(description){
 					const char * description_ns = xmpp_stanza_get_ns(description);
-					if(description_ns && string(description_ns)=="urn:xmpp:jingle:apps:rtp:1"){
+                    if(description_ns && std::string(description_ns)=="urn:xmpp:jingle:apps:rtp:1"){
 						xmpp->rtpInitiationAccepted(stanza);
-					}else if(description_ns && string(description_ns)=="urn:xmpp:jingle:apps:file-transfer:3"){
+                    }else if(description_ns && std::string(description_ns)=="urn:xmpp:jingle:apps:file-transfer:3"){
 						xmpp->fileInitiationAccepted(stanza);
 					}else{
 						ofLogWarning(LOG_NAME) << "got session-accept for unkown namespace " << description_ns;
@@ -475,9 +475,9 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 			}
 		}
 	}else{
-		if( iq_type && string(iq_type)=="result" && xmpp->jingleState==InitiatingRTP){
+        if( iq_type && std::string(iq_type)=="result" && xmpp->jingleState==InitiatingRTP){
 			xmpp->jingleState = InitiationACKd;
-		}else if( iq_type && string(iq_type)=="result" && xmpp->jingleState==AcceptingRTP){
+        }else if( iq_type && std::string(iq_type)=="result" && xmpp->jingleState==AcceptingRTP){
 			xmpp->jingleState = SessionAccepted;
 		}/*TODO: handle acks
 		else if( iq_type && string(iq_type)=="result" && xmpp->jingleFileTransferState==FileInitiatingRTP){
@@ -488,7 +488,7 @@ int ofxXMPP::iq_handler(xmpp_conn_t * const conn,
 	}
 
 
-	cout << xmpp_conn_get_bound_jid(xmpp->conn) << " to state " << toString(xmpp->jingleState) << endl;
+    std::cout << xmpp_conn_get_bound_jid(xmpp->conn) << " to state " << toString(xmpp->jingleState) << std::endl;
 	//cout << xmpp_conn_get_bound_jid(xmpp->conn) << " to state " << toString(xmpp->jingleFileTransferState) << endl;
 	return 1;
 }
@@ -508,7 +508,7 @@ ofxXMPP::~ofxXMPP() {
 	stop();
 }
 
-string ofxXMPP::toString(ofxXMPPShowState showState){
+std::string ofxXMPP::toString(ofxXMPPShowState showState){
 	switch(showState){
 	case ofxXMPPShowAway:
 		return "away";
@@ -522,7 +522,7 @@ string ofxXMPP::toString(ofxXMPPShowState showState){
 }
 
 
-ofxXMPPShowState ofxXMPP::fromString(string showState){
+ofxXMPPShowState ofxXMPP::fromString(std::string showState){
 	if(showState=="away") return ofxXMPPShowAway;
 	if(showState=="dnd") return ofxXMPPShowDnd;
 	if(showState=="xa") return ofxXMPPShowXA;
@@ -536,21 +536,21 @@ void ofxXMPP::setShow(ofxXMPPShowState showState){
 	}
 }
 
-void ofxXMPP::setStatus(const string & status){
+void ofxXMPP::setStatus(const std::string & status){
 	currentStatus = status;
 	if(conn){
 		sendPressence();
 	}
 }
 
-void ofxXMPP::setCapabilities(const string & capabilities){
+void ofxXMPP::setCapabilities(const std::string & capabilities){
 	this->capabilities = capabilities;
 	if(conn){
 		sendPressence();
 	}
 }
 
-void ofxXMPP::sendMessage(const string & to, const string & message){
+void ofxXMPP::sendMessage(const std::string & to, const std::string & message){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call sendMessage, xmpp not initialized";
 		return;
@@ -630,7 +630,7 @@ void ofxXMPP::sendPressence(){
 	xmpp_stanza_release(pres);
 }
 
-void ofxXMPP::connect(const string & host, const string & jid, const string & pass){
+void ofxXMPP::connect(const std::string & host, const std::string & jid, const std::string & pass){
 	static bool libInitialized = false;
 	if(!libInitialized){
 		xmpp_initialize();
@@ -679,20 +679,20 @@ void ofxXMPP::connect(const string & host, const string & jid, const string & pa
 
 }
 
-vector<ofxXMPPUser> ofxXMPP::getFriends(){
-	vector<ofxXMPPUser> friendsVector;
+std::vector<ofxXMPPUser> ofxXMPP::getFriends(){
+	std::vector<ofxXMPPUser> friendsVector;
 	lock();
-	for(map<string,ofxXMPPUser>::iterator it=friends.begin();it!=friends.end();it++){
+    for(std::map<std::string,ofxXMPPUser>::iterator it=friends.begin();it!=friends.end();it++){
 		friendsVector.push_back(it->second);
 	}
 	unlock();
 	return friendsVector;
 }
 
-vector<ofxXMPPUser> ofxXMPP::getFriendsWithCapability(const string & capability){
-	vector<ofxXMPPUser> friendsVector;
+std::vector<ofxXMPPUser> ofxXMPP::getFriendsWithCapability(const std::string & capability){
+	std::vector<ofxXMPPUser> friendsVector;
 	lock();
-	for(map<string,ofxXMPPUser>::iterator it=friends.begin();it!=friends.end();it++){
+    for(std::map<std::string,ofxXMPPUser>::iterator it=friends.begin();it!=friends.end();it++){
 		for(size_t i=0;i<it->second.capabilities.size();i++){
 			if(it->second.capabilities[i]==capability){
 				friendsVector.push_back(it->second);
@@ -706,7 +706,7 @@ vector<ofxXMPPUser> ofxXMPP::getFriendsWithCapability(const string & capability)
 
 void ofxXMPP::update(ofEventArgs & args){
 	lock();
-	queue<ofxXMPPMessage> queueCopy = messageQueue;
+    std::queue<ofxXMPPMessage> queueCopy = messageQueue;
 	while(!messageQueue.empty()){
 		messageQueue.pop();
 	}
@@ -722,7 +722,7 @@ ofxXMPPConnectionState ofxXMPP::getConnectionState(){
 	return connectionState;
 }
 
-string ofxXMPP::getBoundJID(){
+std::string ofxXMPP::getBoundJID(){
 	return xmpp_conn_get_bound_jid(conn);
 }
 
@@ -760,7 +760,7 @@ xmpp_stanza_t * ofxXMPP::stanzaFromICETransport(const ofxXMPPICETransport & tran
 	return transport_stanza;
 }
 
-void ofxXMPP::initiateRTP(const string & to, ofxXMPPJingleInitiation & jingleInitiation){
+void ofxXMPP::initiateRTP(const std::string & to, ofxXMPPJingleInitiation & jingleInitiation){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call initiateRTP, xmpp not initialized";
 		return;
@@ -909,7 +909,7 @@ void ofxXMPP::ring(const ofxXMPPJingleInitiation & xmppJingle){
 	xmpp_stanza_release(iq);
 }
 
-void ofxXMPP::ackRing(const string & to, const string & sid){
+void ofxXMPP::ackRing(const std::string & to, const std::string & sid){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call ackRing, xmpp not initialized";
 		return;
@@ -939,7 +939,7 @@ void ofxXMPP::stop(){
 	mutex.unlock();
 }
 
-void ofxXMPP::initiateFileTransfer(const string & to, ofxXMPPJingleFileInitiation & jingleFileInitiation){
+void ofxXMPP::initiateFileTransfer(const std::string & to, ofxXMPPJingleFileInitiation & jingleFileInitiation){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call initiateFileTransfer, xmpp not initialized";
 		return;

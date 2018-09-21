@@ -46,80 +46,80 @@ enum ofxXMPPTerminateReason{
 };
 
 struct ofxXMPPUser{
-	string userName;
-	string status;
+	std::string userName;
+	std::string status;
 	ofxXMPPShowState show;
 	ofxXMPPChatState chatState;
 	int priority;
-	string resource;
-	vector<string> capabilities;
+	std::string resource;
+	std::vector<std::string> capabilities;
 };
 
 struct ofxXMPPMessage{
-	string from;
-	string type;
-	string body;
+	std::string from;
+	std::string type;
+	std::string body;
 };
 
 struct ofxXMPPPayload{
 	int id;  //typically 96 - 127
-	string name;
+	std::string name;
 	int clockrate;
 };
 
 #ifndef USE_OFX_NICE
 struct ofxICECandidate{
 	int component;
-	string foundation;
+	std::string foundation;
 	int generation;
-	string id;
-	string ip;
+	std::string id;
+	std::string ip;
 	int network;
 	int port;
 	int priority;
-	string protocol;
-	string type;
+	std::string protocol;
+	std::string type;
 };
 #endif
 
 struct ofxXMPPICETransport{
-	string pwd;
-	string ufrag;
-	vector<ofxICECandidate> candidates;
+	std::string pwd;
+	std::string ufrag;
+	std::vector<ofxICECandidate> candidates;
 };
 
 struct ofxXMPPJingleContent{
-	string name;
-	string media;
-	vector<ofxXMPPPayload> payloads;
+	std::string name;
+	std::string media;
+	std::vector<ofxXMPPPayload> payloads;
 	ofxXMPPICETransport transport;
 };
 
 struct ofxXMPPJingleInitiation{
-	string from;
-	string sid;
-	vector<ofxXMPPJingleContent> contents;
+	std::string from;
+	std::string sid;
+	std::vector<ofxXMPPJingleContent> contents;
 };
 
 
 struct ofxXMPPJingleFileInitiation{
-	string fid;
-	string from;
-	string sid;
-	string name;
-	string date;
-	string desc;
+	std::string fid;
+	std::string from;
+	std::string sid;
+	std::string name;
+	std::string date;
+	std::string desc;
 	size_t size;
-	string hash;  // file hash as sha-1
+	std::string hash;  // file hash as sha-1
 	ofxXMPPICETransport transport;
 };
 
 struct ofxXMPPJingleHash{
-	string sid;
-	string fid;
-	string from;
-	string hash;
-	string algo;
+	std::string sid;
+	std::string fid;
+	std::string from;
+	std::string hash;
+	std::string algo;
 };
 
 /// XMPP is a protocol that allows sending messages among to peers through a server
@@ -139,38 +139,38 @@ public:
 
 	/// string that sets the status of the client, will show to other clients as a text message
 	/// near the client name
-	void setStatus(const string & status);
+	void setStatus(const std::string & status);
 
 	/// capabilities string that signals to other clients if this client has camera, microphone...
 	/// although there are some standard capabilities defined in the jingle RFC 2 clients can use
 	/// any string that they agree on to signal that they can start a connection for certain stream
 	/// types
-	void setCapabilities(const string & capabilities);
+	void setCapabilities(const std::string & capabilities);
 
 	/// starts a connection to an XMPP server, passing the host to connect to, the username or jid
 	/// and the password
-	void connect(const string & host, const string & jid, const string & pass);
+	void connect(const std::string & host, const std::string & jid, const std::string & pass);
 
 	/// stops the connection
 	void stop();
 
 	/// sends a message to an specific client, to has to be the username or the specific id of a client
 	/// which is usually the username + a hash that we get calling getFriends()
-	void sendMessage(const string & to, const string & message);
+	void sendMessage(const std::string & to, const std::string & message);
 
 	/// returns a vector with all the users in our contact list from which we can know their state,
 	/// capabilities...
-	vector<ofxXMPPUser> getFriends();
+	std::vector<ofxXMPPUser> getFriends();
 
 	/// returns a vector with all the users in our contact list from which we can know their state,
 	/// capabilities...
-	vector<ofxXMPPUser> getFriendsWithCapability(const string & capability);
+	std::vector<ofxXMPPUser> getFriendsWithCapability(const std::string & capability);
 
 	/// returns the connection state of this client
 	ofxXMPPConnectionState getConnectionState();
 
 	/// returns the JID of this client as returned by the server usually the username + a hash
-	string getBoundJID();
+    std::string getBoundJID();
 
 	// general events
 
@@ -200,10 +200,10 @@ public:
 	/// jingleRing event and then the application should do something to notify the user of the
 	/// incomming call if the user accepts the call we shoukd call ackRing
 	ofEvent<ofxXMPPJingleInitiation> jingleInitiationReceived;
-	ofEvent<string> jingleInitiationACKd;
+	ofEvent<std::string> jingleInitiationACKd;
 	ofEvent<ofxXMPPJingleInitiation> jingleInitiationAccepted;
 	ofEvent<ofxXMPPTerminateReason> jingleTerminateReceived;
-	ofEvent<string> jingleRing;
+	ofEvent<std::string> jingleRing;
 
 	/// jingle file transfer events
 	ofEvent<ofxXMPPJingleFileInitiation> jingleFileInitiationReceived;
@@ -216,22 +216,22 @@ public:
 	// RTP-ICE using Jingle  xmpp.org/extensions/xep-0167.html
 
 	/// returns sid for the initiated session
-	void initiateRTP(const string & to, ofxXMPPJingleInitiation & jingle);
+	void initiateRTP(const std::string & to, ofxXMPPJingleInitiation & jingle);
 	void ack(const ofxXMPPJingleInitiation & jingle);
 	void ring(const ofxXMPPJingleInitiation & jingle);
-	void ackRing(const string & to, const string & sid);
-	void acceptRTPSession(const string & to, ofxXMPPJingleInitiation & jingle);
+	void ackRing(const std::string & to, const std::string & sid);
+	void acceptRTPSession(const std::string & to, ofxXMPPJingleInitiation & jingle);
 	void terminateRTPSession(ofxXMPPJingleInitiation & jingle, ofxXMPPTerminateReason reason);
 
 	// File transfer based on Jingle file transfer but using libnice tcp over udp
-	void initiateFileTransfer(const string & to, ofxXMPPJingleFileInitiation & jingle);
+	void initiateFileTransfer(const std::string & to, ofxXMPPJingleFileInitiation & jingle);
 	void ack(const ofxXMPPJingleFileInitiation & jingle);
 	void acceptFileTransfer(ofxXMPPJingleFileInitiation & jingle);
-	void sendFileHash(const string & to, const ofxXMPPJingleHash & hash);
+	void sendFileHash(const std::string & to, const ofxXMPPJingleHash & hash);
 	void ack(const ofxXMPPJingleHash & hash);
 
-	static string toString(ofxXMPPShowState showState);
-	static ofxXMPPShowState fromString(string showState);
+	static std::string toString(ofxXMPPShowState showState);
+	static ofxXMPPShowState fromString(std::string showState);
 
 
     enum JingleState{
@@ -270,7 +270,7 @@ public:
     JingleState getJingleState();
 
 
-    static string LOG_NAME;
+    static std::string LOG_NAME;
 
 private:
 	void threadedFunction();
@@ -308,14 +308,14 @@ private:
     xmpp_conn_t *conn;
 
     ofxXMPPShowState currentShow;
-    string currentStatus;
-    string capabilities;
+    std::string currentStatus;
+    std::string capabilities;
 
-    map<string, ofxXMPPUser> friends;
-    queue<ofxXMPPMessage> messageQueue;
+    std::map<std::string, ofxXMPPUser> friends;
+    std::queue<ofxXMPPMessage> messageQueue;
 
     ofxXMPPConnectionState connectionState;
-    string userName;
+    std::string userName;
 
     JingleState jingleState;
     //JingleFileTransferState jingleFileTransferState;
@@ -323,9 +323,9 @@ private:
     Poco::Condition disconnection;
     bool disconnecting;
 
-    static string toString(JingleState state);
+    static std::string toString(JingleState state);
     //static string toString(JingleFileTransferState state);
-    void addTextChild(xmpp_stanza_t * stanza, const string & textstr);
+    void addTextChild(xmpp_stanza_t * stanza, const std::string & textstr);
 
 };
 
