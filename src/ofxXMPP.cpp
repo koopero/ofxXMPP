@@ -1027,7 +1027,7 @@ void ofxXMPP::initiateFileTransfer(const std::string & to, ofxXMPPJingleFileInit
 
 	//jingleFileTransferState = FileInitiatingRTP;
 
-	cout << "xmpp sending initiate file transfer" << endl;
+    std::cout << "xmpp sending initiate file transfer" << std::endl;
 	xmpp_send(conn,iq);
 	xmpp_stanza_release(iq);
 }
@@ -1121,13 +1121,13 @@ void ofxXMPP::acceptFileTransfer(ofxXMPPJingleFileInitiation & jingleFileInitiat
 
 	//jingleFileTransferState = FileAcceptingRTP;
 
-	cout << "xmpp sending initiate file transfer" << endl;
+    std::cout << "xmpp sending initiate file transfer" << std::endl;
 	xmpp_send(conn,iq);
 	xmpp_stanza_release(iq);
 }
 
 
-void ofxXMPP::sendFileHash(const string & to, const ofxXMPPJingleHash & hash){
+void ofxXMPP::sendFileHash(const std::string & to, const ofxXMPPJingleHash & hash){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call sendFileHash, xmpp not initialized";
 		return;
@@ -1235,7 +1235,7 @@ void ofxXMPP::threadedFunction(){
 	xmpp_run(ctx);
 }
 
-void ofxXMPP::acceptRTPSession(const string & to, ofxXMPPJingleInitiation & jingleInitiation){
+void ofxXMPP::acceptRTPSession(const std::string & to, ofxXMPPJingleInitiation & jingleInitiation){
 	if(!ctx){
 		ofLogError(LOG_NAME) << "can't call acceptRTPSession, xmpp not initialized";
 		return;
